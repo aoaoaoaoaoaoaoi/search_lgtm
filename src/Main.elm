@@ -188,18 +188,21 @@ itemsDecoder =
         (D.field "article" articlesDecoder)
 
 
-articlesDecoder : Decoder (List Article)
+
+{--articlesDecoder : Decoder (List Article)
 articlesDecoder =
     D.list articleDecoder
+--}
 
 
-articleDecoder : Decoder Article
-articleDecoder =
+articlesDecoder : Decoder (List Article)
+articlesDecoder =
     D.map4 Article
         (D.field "linkUrl" D.string)
         (D.field "title" D.string)
         (D.field "tags" tagsDecoder)
         (D.field "author" authorDecoder)
+        |> D.list
 
 
 authorDecoder : Decoder Author

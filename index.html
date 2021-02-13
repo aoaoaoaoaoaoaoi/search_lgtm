@@ -4448,8 +4448,8 @@ var $author$project$Main$authorDecoder = A3(
 	$author$project$Main$Author,
 	A2($elm$json$Json$Decode$field, 'urlName', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'profileImageUrl', $elm$json$Json$Decode$string));
-var $elm$json$Json$Decode$map4 = _Json_map4;
 var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$json$Json$Decode$map4 = _Json_map4;
 var $author$project$Main$Tag = function (name) {
 	return {name: name};
 };
@@ -4458,14 +4458,14 @@ var $author$project$Main$tagDecoder = A2(
 	$author$project$Main$Tag,
 	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string));
 var $author$project$Main$tagsDecoder = $elm$json$Json$Decode$list($author$project$Main$tagDecoder);
-var $author$project$Main$articleDecoder = A5(
-	$elm$json$Json$Decode$map4,
-	$author$project$Main$Article,
-	A2($elm$json$Json$Decode$field, 'linkUrl', $elm$json$Json$Decode$string),
-	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
-	A2($elm$json$Json$Decode$field, 'tags', $author$project$Main$tagsDecoder),
-	A2($elm$json$Json$Decode$field, 'author', $author$project$Main$authorDecoder));
-var $author$project$Main$articlesDecoder = $elm$json$Json$Decode$list($author$project$Main$articleDecoder);
+var $author$project$Main$articlesDecoder = $elm$json$Json$Decode$list(
+	A5(
+		$elm$json$Json$Decode$map4,
+		$author$project$Main$Article,
+		A2($elm$json$Json$Decode$field, 'linkUrl', $elm$json$Json$Decode$string),
+		A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
+		A2($elm$json$Json$Decode$field, 'tags', $author$project$Main$tagsDecoder),
+		A2($elm$json$Json$Decode$field, 'author', $author$project$Main$authorDecoder)));
 var $author$project$Main$itemsDecoder = A2(
 	$elm$json$Json$Decode$map,
 	$author$project$Main$Items,
