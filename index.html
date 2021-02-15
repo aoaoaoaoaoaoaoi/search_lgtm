@@ -4431,8 +4431,8 @@ var $author$project$Main$User = function (paginatedArticleLikes) {
 var $author$project$Main$PaginatedArticleLikes = function (items) {
 	return {items: items};
 };
-var $author$project$Main$Items = function (articles) {
-	return {articles: articles};
+var $author$project$Main$Item = function (article) {
+	return {article: article};
 };
 var $author$project$Main$Article = F4(
 	function (url, title, tags, author) {
@@ -4448,8 +4448,8 @@ var $author$project$Main$authorDecoder = A3(
 	$author$project$Main$Author,
 	A2($elm$json$Json$Decode$field, 'urlName', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'profileImageUrl', $elm$json$Json$Decode$string));
-var $elm$json$Json$Decode$list = _Json_decodeList;
 var $elm$json$Json$Decode$map4 = _Json_map4;
+var $elm$json$Json$Decode$list = _Json_decodeList;
 var $author$project$Main$Tag = function (name) {
 	return {name: name};
 };
@@ -4458,18 +4458,18 @@ var $author$project$Main$tagDecoder = A2(
 	$author$project$Main$Tag,
 	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string));
 var $author$project$Main$tagsDecoder = $elm$json$Json$Decode$list($author$project$Main$tagDecoder);
-var $author$project$Main$articlesDecoder = $elm$json$Json$Decode$list(
-	A5(
-		$elm$json$Json$Decode$map4,
-		$author$project$Main$Article,
-		A2($elm$json$Json$Decode$field, 'linkUrl', $elm$json$Json$Decode$string),
-		A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
-		A2($elm$json$Json$Decode$field, 'tags', $author$project$Main$tagsDecoder),
-		A2($elm$json$Json$Decode$field, 'author', $author$project$Main$authorDecoder)));
-var $author$project$Main$itemsDecoder = A2(
-	$elm$json$Json$Decode$map,
-	$author$project$Main$Items,
-	A2($elm$json$Json$Decode$field, 'article', $author$project$Main$articlesDecoder));
+var $author$project$Main$articleDecoder = A5(
+	$elm$json$Json$Decode$map4,
+	$author$project$Main$Article,
+	A2($elm$json$Json$Decode$field, 'linkUrl', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'tags', $author$project$Main$tagsDecoder),
+	A2($elm$json$Json$Decode$field, 'author', $author$project$Main$authorDecoder));
+var $author$project$Main$itemsDecoder = $elm$json$Json$Decode$list(
+	A2(
+		$elm$json$Json$Decode$map,
+		$author$project$Main$Item,
+		A2($elm$json$Json$Decode$field, 'article', $author$project$Main$articleDecoder)));
 var $author$project$Main$paginatedArticleLikesDecoder = A2(
 	$elm$json$Json$Decode$map,
 	$author$project$Main$PaginatedArticleLikes,

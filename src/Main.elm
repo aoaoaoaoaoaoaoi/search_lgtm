@@ -125,12 +125,12 @@ type alias User =
 
 
 type alias PaginatedArticleLikes =
-    { items : Items
+    { items : List Item
     }
 
 
-type alias Items =
-    { articles : List Article
+type alias Item =
+    { article : Article
     }
 
 
@@ -181,11 +181,12 @@ paginatedArticleLikesDecoder =
         (D.field "items" itemsDecoder)
 
 
-itemsDecoder : Decoder Items
+itemsDecoder : Decoder (List Item)
 itemsDecoder =
     D.map
-        Items
-        (D.field "article" articlesDecoder)
+        Item
+        (D.field "article" articleDecoder)
+        |> D.list
 
 
 
@@ -195,14 +196,13 @@ articlesDecoder =
 --}
 
 
-articlesDecoder : Decoder (List Article)
-articlesDecoder =
+articleDecoder : Decoder Article
+articleDecoder =
     D.map4 Article
         (D.field "linkUrl" D.string)
         (D.field "title" D.string)
         (D.field "tags" tagsDecoder)
         (D.field "author" authorDecoder)
-        |> D.list
 
 
 authorDecoder : Decoder Author
