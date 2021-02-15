@@ -32,7 +32,7 @@ type alias Model =
 type DataState
     = Init
     | Waiting
-    | LoadedArticleData (List Article)
+    | LoadedArticleData ArticleData
     | Failed Http.Error
 
 
@@ -49,7 +49,7 @@ init _ =
 
 type Msg
     = Send
-    | ReceiveArticleData (Result Http.Error (List Article))
+    | ReceiveArticleData (Result Http.Error (ArticleData))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -62,12 +62,11 @@ update msg model =
             , getArticleData
             )
 
-        ReceiveArticleData (Ok Article) ->
-            ( { model | dataState = LoadedArticleData article }, Cmd.none )
+        ReceiveArticleData (Ok articleData) ->
+            ( { model | dataState = LoadedArticleData articleData }, Cmd.none )
 
         ReceiveArticleData (Err e) ->
             ( { model | dataState = Failed e }, Cmd.none )
-
 
 
 getArticleData : Cmd Msg
@@ -75,14 +74,14 @@ getArticleData =
     Task.attempt ReceiveArticleData getArticleDataTask
 
 
-getArticleDataTask : Task Http.Error Article
+getArticleDataTask : Task Http.Error ArticleData
 getArticleDataTask =
     Http.task
         { method = "POST"
         , headers = []
         , url = ""
         , body = Http.emptyBody
-        , resolver = jsonResolver articlesDecoder
+        , resolver = jsonResolver articleDataDecoder
         , timeout = Nothing
         }
 
@@ -125,25 +124,111 @@ view model =
 
 --DATA
 
-type alias Article =
-    { url : String
-    , title : String
-    , tag : String
-    , userName : String
-    , iconImageUrl : String
+
+type alias ArticleData =
+    { data : Data
     }
 
 
-articlesDecoder : Decoder (List Repository)
-articlesDecoder =
-    D.list articleDecoder
+type alias Data =
+    { user : User
+    }
+
+
+type alias User =
+    { paginatedArticleLikes : PaginatedArticleLikes
+    }
+
+
+type alias PaginatedArticleLikes =
+    { items : List Item
+    }
+
+
+type alias Item =
+    { article : Article
+    }
+
+
+type alias Article =
+    { url : String
+    , title : String
+    , tags : List Tag
+    , author : Author
+    }
+
+
+type alias Author =
+    { name : String
+    , imageUrl : String
+    }
+
+
+type alias Tag =
+    { name : String
+    }
+
+
+articleDataDecoder : Decoder ArticleData
+articleDataDecoder =
+    D.map
+        ArticleData
+        (D.field "data" dataDecoder)
+
+
+dataDecoder : Decoder Data
+dataDecoder =
+    D.map
+        Data
+        (D.field "user" userDecoder)
+
+
+userDecoder : Decoder User
+userDecoder =
+    D.map
+        User
+        (D.field "paginatedArticleLikes" paginatedArticleLikesDecoder)
+
+
+paginatedArticleLikesDecoder : Decoder PaginatedArticleLikes
+paginatedArticleLikesDecoder =
+    D.map
+        PaginatedArticleLikes
+        (D.field "items" itemsDecoder)
+
+
+itemsDecoder : Decoder (List Item)
+itemsDecoder =
+    D.map
+        Item
+        (D.field "article" articleDecoder)
+        |> D.list
 
 
 articleDecoder : Decoder Article
 articleDecoder =
-    D.map5 Repository
+    D.map4 Article
+        (D.field "linkUrl" D.string)
+        (D.field "title" D.string)
+        (D.field "tags" tagsDecoder)
+        (D.field "author" authorDecoder)
+
+
+authorDecoder : Decoder Author
+authorDecoder =
+    D.map2
+        Author
+        (D.field "urlName" D.string)
+        (D.field "profileImageUrl" D.string)
+
+
+tagsDecoder : Decoder (List Tag)
+tagsDecoder =
+    D.list tagDecoder
+
+
+tagDecoder : Decoder Tag
+tagDecoder =
+    D.map
+        Tag
         (D.field "name" D.string)
-        (D.field "private" D.bool)
-        (D.maybe (D.field "description" D.string))
-        (D.field "fork" D.bool)
-        (D.field "url" D.string)
