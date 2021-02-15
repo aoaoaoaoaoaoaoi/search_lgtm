@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode as D exposing (Decoder)
+import Json.Encode as Encode
 import List exposing (..)
 import Task exposing (..)
 
@@ -49,7 +50,7 @@ init _ =
 
 type Msg
     = Send
-    | ReceiveArticleData (Result Http.Error (ArticleData))
+    | ReceiveArticleData (Result Http.Error ArticleData)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -78,12 +79,25 @@ getArticleDataTask : Task Http.Error ArticleData
 getArticleDataTask =
     Http.task
         { method = "POST"
-        , headers = []
-        , url = ""
-        , body = Http.emptyBody
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = "https://qiita.com/api/v2/graphql"
+        , body = Http.jsonBody makeRequestParameter
         , resolver = jsonResolver articleDataDecoder
         , timeout = Nothing
         }
+
+
+getRequestParameter =
+    Encode.encode 0 makeRequestParameter
+
+
+makeRequestParameter : Encode.Value
+makeRequestParameter =
+    Encode.object
+        [ ( "urlName", Encode.string "pirorirori_n712" )
+        , ( "page", Encode.int 7 )
+        , ( "per", Encode.int 40 )
+        ]
 
 
 jsonResolver : D.Decoder a -> Http.Resolver Http.Error a
