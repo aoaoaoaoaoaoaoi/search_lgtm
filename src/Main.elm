@@ -8,11 +8,7 @@ import List exposing (..)
 
 payload =
     """
-{
- "data": {
-  "user": {
-   "paginatedArticleLikes": {
-    "items": [
+[
      {
       "article": {
        "__typename": "Article",
@@ -92,15 +88,11 @@ payload =
       "__typename": "ArticleLike"
      }
     ]
-   }
-  }
- }
-}
 """
 
 
 main =
-    D.decodeString articleDataDecoder payload
+    D.decodeString articleDecoder payload
         |> Debug.toString
         |> text
 
@@ -109,32 +101,12 @@ main =
 --DATA
 
 
-type alias ArticleData =
-    { data : Data
-    }
-
-
-type alias Data =
-    { user : User
-    }
-
-
-type alias User =
-    { paginatedArticleLikes : PaginatedArticleLikes
-    }
-
-
-type alias PaginatedArticleLikes =
-    { items : Items
-    }
-
-
-type alias Items =
-    { articles : List Article
-    }
-
-
 type alias Article =
+    { article : ArticleDetail
+    }
+
+
+type alias ArticleDetail =
     { url : String
     , title : String
     , tags : List Tag
@@ -153,56 +125,22 @@ type alias Tag =
     }
 
 
-articleDataDecoder : Decoder ArticleData
-articleDataDecoder =
+articleDecoder : Decoder (List Article)
+articleDecoder =
     D.map
-        ArticleData
-        (D.field "data" dataDecoder)
+        Article
+        (D.field "article" articleDetailDecoder)
+        |> D.list
 
 
-dataDecoder : Decoder Data
-dataDecoder =
-    D.map
-        Data
-        (D.field "user" userDecoder)
-
-
-userDecoder : Decoder User
-userDecoder =
-    D.map
-        User
-        (D.field "paginatedArticleLikes" paginatedArticleLikesDecoder)
-
-
-paginatedArticleLikesDecoder : Decoder PaginatedArticleLikes
-paginatedArticleLikesDecoder =
-    D.map
-        PaginatedArticleLikes
-        (D.field "items" itemsDecoder)
-
-
-itemsDecoder : Decoder Items
-itemsDecoder =
-    D.map
-        Items
-        (D.field "article" articlesDecoder)
-
-
-
-{--articlesDecoder : Decoder (List Article)
-articlesDecoder =
-    D.list articleDecoder
---}
-
-
-articlesDecoder : Decoder (List Article)
-articlesDecoder =
-    D.map4 Article
+articleDetailDecoder : Decoder ArticleDetail
+articleDetailDecoder =
+    D.map4
+        ArticleDetail
         (D.field "linkUrl" D.string)
         (D.field "title" D.string)
         (D.field "tags" tagsDecoder)
         (D.field "author" authorDecoder)
-        |> D.list
 
 
 authorDecoder : Decoder Author

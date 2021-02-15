@@ -4418,23 +4418,10 @@ var $elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 			return 3;
 	}
 };
-var $author$project$Main$ArticleData = function (data) {
-	return {data: data};
+var $author$project$Main$Article = function (article) {
+	return {article: article};
 };
-var $author$project$Main$Data = function (user) {
-	return {user: user};
-};
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $author$project$Main$User = function (paginatedArticleLikes) {
-	return {paginatedArticleLikes: paginatedArticleLikes};
-};
-var $author$project$Main$PaginatedArticleLikes = function (items) {
-	return {items: items};
-};
-var $author$project$Main$Items = function (articles) {
-	return {articles: articles};
-};
-var $author$project$Main$Article = F4(
+var $author$project$Main$ArticleDetail = F4(
 	function (url, title, tags, author) {
 		return {author: author, tags: tags, title: title, url: url};
 	});
@@ -4442,14 +4429,15 @@ var $author$project$Main$Author = F2(
 	function (name, imageUrl) {
 		return {imageUrl: imageUrl, name: name};
 	});
+var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$string = _Json_decodeString;
 var $author$project$Main$authorDecoder = A3(
 	$elm$json$Json$Decode$map2,
 	$author$project$Main$Author,
 	A2($elm$json$Json$Decode$field, 'urlName', $elm$json$Json$Decode$string),
 	A2($elm$json$Json$Decode$field, 'profileImageUrl', $elm$json$Json$Decode$string));
-var $elm$json$Json$Decode$list = _Json_decodeList;
 var $elm$json$Json$Decode$map4 = _Json_map4;
+var $elm$json$Json$Decode$list = _Json_decodeList;
 var $author$project$Main$Tag = function (name) {
 	return {name: name};
 };
@@ -4458,42 +4446,26 @@ var $author$project$Main$tagDecoder = A2(
 	$author$project$Main$Tag,
 	A2($elm$json$Json$Decode$field, 'name', $elm$json$Json$Decode$string));
 var $author$project$Main$tagsDecoder = $elm$json$Json$Decode$list($author$project$Main$tagDecoder);
-var $author$project$Main$articlesDecoder = $elm$json$Json$Decode$list(
-	A5(
-		$elm$json$Json$Decode$map4,
+var $author$project$Main$articleDetailDecoder = A5(
+	$elm$json$Json$Decode$map4,
+	$author$project$Main$ArticleDetail,
+	A2($elm$json$Json$Decode$field, 'linkUrl', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'tags', $author$project$Main$tagsDecoder),
+	A2($elm$json$Json$Decode$field, 'author', $author$project$Main$authorDecoder));
+var $author$project$Main$articleDecoder = $elm$json$Json$Decode$list(
+	A2(
+		$elm$json$Json$Decode$map,
 		$author$project$Main$Article,
-		A2($elm$json$Json$Decode$field, 'linkUrl', $elm$json$Json$Decode$string),
-		A2($elm$json$Json$Decode$field, 'title', $elm$json$Json$Decode$string),
-		A2($elm$json$Json$Decode$field, 'tags', $author$project$Main$tagsDecoder),
-		A2($elm$json$Json$Decode$field, 'author', $author$project$Main$authorDecoder)));
-var $author$project$Main$itemsDecoder = A2(
-	$elm$json$Json$Decode$map,
-	$author$project$Main$Items,
-	A2($elm$json$Json$Decode$field, 'article', $author$project$Main$articlesDecoder));
-var $author$project$Main$paginatedArticleLikesDecoder = A2(
-	$elm$json$Json$Decode$map,
-	$author$project$Main$PaginatedArticleLikes,
-	A2($elm$json$Json$Decode$field, 'items', $author$project$Main$itemsDecoder));
-var $author$project$Main$userDecoder = A2(
-	$elm$json$Json$Decode$map,
-	$author$project$Main$User,
-	A2($elm$json$Json$Decode$field, 'paginatedArticleLikes', $author$project$Main$paginatedArticleLikesDecoder));
-var $author$project$Main$dataDecoder = A2(
-	$elm$json$Json$Decode$map,
-	$author$project$Main$Data,
-	A2($elm$json$Json$Decode$field, 'user', $author$project$Main$userDecoder));
-var $author$project$Main$articleDataDecoder = A2(
-	$elm$json$Json$Decode$map,
-	$author$project$Main$ArticleData,
-	A2($elm$json$Json$Decode$field, 'data', $author$project$Main$dataDecoder));
+		A2($elm$json$Json$Decode$field, 'article', $author$project$Main$articleDetailDecoder)));
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
-var $author$project$Main$payload = '\r\n{\r\n "data": {\r\n  "user": {\r\n   "paginatedArticleLikes": {\r\n    "items": [\r\n     {\r\n      "article": {\r\n       "__typename": "Article",\r\n       "encryptedId": "Hljc2syxn/3hwaethOinacdGXGk8s71H",\r\n       "createdAt": "2017-09-19T15:21:24Z",\r\n       "isLikedByViewer": true,\r\n       "isPublic": true,\r\n       "likesCount": 58,\r\n       "linkUrl": "https://qiita.com/oo2kazuma/items/015274769744545dd081",\r\n       "title": "Linux OSの種類とバージョンの調べ方",\r\n       "uuid": "015274769744545dd081",\r\n       "author": {\r\n        "isUser": true,\r\n        "profileImageUrl": "https://qiita-image-store.s3.amazonaws.com/0/35095/profile-images/1473686603",\r\n        "profileImageUrlW48": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F35095%2Fprofile-images%2F1473686603?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=48&s=6e4d7fc600bf92fcef5fb2a659f4c36f",\r\n        "profileImageUrlW75": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F35095%2Fprofile-images%2F1473686603?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=75&s=689db9b6f946ae465551ba92b77ce42a",\r\n        "urlName": "oo2kazuma",\r\n        "__typename": "User"\r\n       },\r\n       "tags": [\r\n        {\r\n         "name": "Linux",\r\n         "urlName": "linux",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "Debian",\r\n         "urlName": "debian",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "CentOS",\r\n         "urlName": "centos",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "Ubuntu",\r\n         "urlName": "ubuntu",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "redhat",\r\n         "urlName": "redhat",\r\n         "__typename": "Tag"\r\n        }\r\n       ]\r\n      },\r\n      "__typename": "ArticleLike"\r\n     },\r\n     {\r\n      "article": {\r\n       "__typename": "Article",\r\n       "encryptedId": "7MQ7hwFKh8nqHAFrRRb3Yhld1+unnJdkjQ==",\r\n       "createdAt": "2020-04-01T05:32:57Z",\r\n       "isLikedByViewer": true,\r\n       "isPublic": true,\r\n       "likesCount": 2,\r\n       "linkUrl": "https://qiita.com/pyon_kiti_jp/items/fe7c48410063c563d753",\r\n       "title": "Ubuntuでrmすると、Text file busyで削除ができない、トラブルシューティング",\r\n       "uuid": "fe7c48410063c563d753",\r\n       "author": {\r\n        "isUser": true,\r\n        "profileImageUrl": "https://qiita-image-store.s3.amazonaws.com/0/94029/profile-images/1521535647",\r\n        "profileImageUrlW48": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F94029%2Fprofile-images%2F1521535647?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=48&s=560c651cf16529a33d23f3670f25167d",\r\n        "profileImageUrlW75": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F94029%2Fprofile-images%2F1521535647?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=75&s=e1496e1bf04d6e60aa8354e5ff8a40c8",\r\n        "urlName": "pyon_kiti_jp",\r\n        "__typename": "User"\r\n       },\r\n       "tags": [\r\n        {\r\n         "name": "Ubuntu",\r\n         "urlName": "ubuntu",\r\n         "__typename": "Tag"\r\n        }\r\n       ]\r\n      },\r\n      "__typename": "ArticleLike"\r\n     }\r\n    ]\r\n   }\r\n  }\r\n }\r\n}\r\n';
+var $author$project$Main$payload = '\r\n[\r\n     {\r\n      "article": {\r\n       "__typename": "Article",\r\n       "encryptedId": "Hljc2syxn/3hwaethOinacdGXGk8s71H",\r\n       "createdAt": "2017-09-19T15:21:24Z",\r\n       "isLikedByViewer": true,\r\n       "isPublic": true,\r\n       "likesCount": 58,\r\n       "linkUrl": "https://qiita.com/oo2kazuma/items/015274769744545dd081",\r\n       "title": "Linux OSの種類とバージョンの調べ方",\r\n       "uuid": "015274769744545dd081",\r\n       "author": {\r\n        "isUser": true,\r\n        "profileImageUrl": "https://qiita-image-store.s3.amazonaws.com/0/35095/profile-images/1473686603",\r\n        "profileImageUrlW48": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F35095%2Fprofile-images%2F1473686603?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=48&s=6e4d7fc600bf92fcef5fb2a659f4c36f",\r\n        "profileImageUrlW75": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F35095%2Fprofile-images%2F1473686603?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=75&s=689db9b6f946ae465551ba92b77ce42a",\r\n        "urlName": "oo2kazuma",\r\n        "__typename": "User"\r\n       },\r\n       "tags": [\r\n        {\r\n         "name": "Linux",\r\n         "urlName": "linux",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "Debian",\r\n         "urlName": "debian",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "CentOS",\r\n         "urlName": "centos",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "Ubuntu",\r\n         "urlName": "ubuntu",\r\n         "__typename": "Tag"\r\n        },\r\n        {\r\n         "name": "redhat",\r\n         "urlName": "redhat",\r\n         "__typename": "Tag"\r\n        }\r\n       ]\r\n      },\r\n      "__typename": "ArticleLike"\r\n     },\r\n     {\r\n      "article": {\r\n       "__typename": "Article",\r\n       "encryptedId": "7MQ7hwFKh8nqHAFrRRb3Yhld1+unnJdkjQ==",\r\n       "createdAt": "2020-04-01T05:32:57Z",\r\n       "isLikedByViewer": true,\r\n       "isPublic": true,\r\n       "likesCount": 2,\r\n       "linkUrl": "https://qiita.com/pyon_kiti_jp/items/fe7c48410063c563d753",\r\n       "title": "Ubuntuでrmすると、Text file busyで削除ができない、トラブルシューティング",\r\n       "uuid": "fe7c48410063c563d753",\r\n       "author": {\r\n        "isUser": true,\r\n        "profileImageUrl": "https://qiita-image-store.s3.amazonaws.com/0/94029/profile-images/1521535647",\r\n        "profileImageUrlW48": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F94029%2Fprofile-images%2F1521535647?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=48&s=560c651cf16529a33d23f3670f25167d",\r\n        "profileImageUrlW75": "https://qiita-user-profile-images.imgix.net/https%3A%2F%2Fqiita-image-store.s3.amazonaws.com%2F0%2F94029%2Fprofile-images%2F1521535647?ixlib=rb-1.2.2&auto=compress%2Cformat&lossless=0&w=75&s=e1496e1bf04d6e60aa8354e5ff8a40c8",\r\n        "urlName": "pyon_kiti_jp",\r\n        "__typename": "User"\r\n       },\r\n       "tags": [\r\n        {\r\n         "name": "Ubuntu",\r\n         "urlName": "ubuntu",\r\n         "__typename": "Tag"\r\n        }\r\n       ]\r\n      },\r\n      "__typename": "ArticleLike"\r\n     }\r\n    ]\r\n';
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$Debug$toString = _Debug_toString;
 var $author$project$Main$main = $elm$html$Html$text(
 	$elm$core$Debug$toString(
-		A2($elm$json$Json$Decode$decodeString, $author$project$Main$articleDataDecoder, $author$project$Main$payload)));
+		A2($elm$json$Json$Decode$decodeString, $author$project$Main$articleDecoder, $author$project$Main$payload)));
 _Platform_export({'Main':{'init':_VirtualDom_init($author$project$Main$main)(0)(0)}});}(this));
 
   var app = Elm.Main.init({ node: document.getElementById("elm") });
