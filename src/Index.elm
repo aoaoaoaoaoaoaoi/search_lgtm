@@ -1,6 +1,7 @@
 module Index exposing (main)
 
 import Browser
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -85,8 +86,22 @@ update msg model =
             ( { model
                 | dataState = Waiting
               }
-            , Cmd.none
+            , Nav.load (getAuthUrl model)
             )
+
+
+checkToken model =
+    model.location.href
+
+
+getAuthUrl : Model -> String
+getAuthUrl model =
+    "https://qiita.com/api/v2/oauth/authorize"
+        ++ "?client_id="
+        ++ model.clientId
+        ++ "&scope=read_qiita"
+        ++ "&state="
+        ++ model.clientState
 
 
 
