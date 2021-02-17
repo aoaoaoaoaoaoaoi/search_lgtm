@@ -28,9 +28,7 @@ main =
 
 type alias Model =
     { dataState : DataState
-    , clientId : String
     , clientSecret : String
-    , clientState : String
     }
 
 
@@ -42,8 +40,8 @@ type DataState
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Init "" "" ""
-    , Cmd.none
+    ( Model Init ""
+    , Nav.load getAuthUrl
     )
 
 
@@ -52,32 +50,16 @@ init _ =
 
 
 type Msg
-    = InputClientId String
-    | InputClientSecret String
-    | InputClientState String
+    = InputClientSecret String
     | Send
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        InputClientId specifiedClientId ->
-            ( { model
-                | clientId = specifiedClientId
-              }
-            , Cmd.none
-            )
-
         InputClientSecret specifiedClientSecret ->
             ( { model
                 | clientSecret = specifiedClientSecret
-              }
-            , Cmd.none
-            )
-
-        InputClientState specifiedClientState ->
-            ( { model
-                | clientState = specifiedClientState
               }
             , Cmd.none
             )
@@ -86,7 +68,7 @@ update msg model =
             ( { model
                 | dataState = Waiting
               }
-            , Nav.load (getAuthUrl model)
+            , Nav.load getAuthUrl
             )
 
 
@@ -94,14 +76,14 @@ checkToken model =
     model.location.href
 
 
-getAuthUrl : Model -> String
-getAuthUrl model =
+getAuthUrl : String
+getAuthUrl =
     "https://qiita.com/api/v2/oauth/authorize"
         ++ "?client_id="
-        ++ model.clientId
+        ++ "190908c64f149924c34c7e381cf3faed0a6236c4"
         ++ "&scope=read_qiita"
         ++ "&state="
-        ++ model.clientState
+        ++ "Pd3mSwgs"
 
 
 
@@ -113,18 +95,8 @@ view model =
     div []
         [ Html.form [ onSubmit Send ]
             [ input
-                [ onInput InputClientId
-                , value model.clientId
-                ]
-                []
-            , input
                 [ onInput InputClientSecret
                 , value model.clientSecret
-                ]
-                []
-            , input
-                [ onInput InputClientState
-                , value model.clientState
                 ]
                 []
             , button [ disabled ((model.dataState == Waiting) || String.isEmpty (String.trim model.clientId) || String.isEmpty (String.trim model.clientSecret) || String.isEmpty (String.trim model.clientState)) ]
