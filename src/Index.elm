@@ -10,6 +10,8 @@ import Json.Decode as D exposing (Decoder)
 import Json.Encode as Encode
 import List exposing (..)
 import Task exposing (..)
+import Url.Parser as Url exposing ((</>), (<?>))
+import Url.Parser.Query as Query
 
 
 main : Program () Model Msg
@@ -29,6 +31,7 @@ main =
 type alias Model =
     { dataState : DataState
     , clientSecret : String
+    , code : String
     }
 
 
@@ -40,9 +43,11 @@ type DataState
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Init ""
-    , Nav.load getAuthUrl
-    )
+    { dataState = Init
+    , clientSecret = ""
+    , code = ""
+    }
+        ! [ Task.perform Authorize ]
 
 
 
@@ -52,6 +57,10 @@ init _ =
 type Msg
     = InputClientSecret String
     | Send
+    | CheckToken
+    | ReceiveCheckToken (Result Http.Error CheckTokenData)
+    | Authorize
+    | GetToken
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -71,9 +80,71 @@ update msg model =
             , Nav.load getAuthUrl
             )
 
+        CheckToken ->
+            ( { model
+                | dataState = Waiting
+              }
+            , Cmd.none
+            )
 
-checkToken model =
-    model.location.href
+        Authorize ->
+            ( { model
+                | dataState = Waiting
+                , code = authorize model
+              }
+            , if model.code == "" then
+                Cmd.none
+
+              else
+                Task.perform GetToken
+            )
+
+        GetToken ->
+            ( { model
+                | dataState = Waiting
+              }
+            , Cmd.none
+            )
+
+
+type alias Param =
+    { code : Maybe String
+    , state : Maybe String
+    }
+
+
+parseUrl : Url.Parser (Param -> a) a
+parseUrl =
+    Url.map Param (Url.s "index.html" <?> Query.string "code" <?> Query.string "state")
+
+
+maybeStringToString : Maybe String -> String
+maybeStringToString str =
+    case str of
+        Just value ->
+            value
+
+        Nothing ->
+            ""
+
+
+authorize : Model -> String
+authorize model =
+    let
+        p =
+            parseUrl model.location.href
+
+        code =
+            maybeStringToString p.code
+
+        state =
+            maybeStringToString p.state
+    in
+    if state == "Pd3mSwgs" && code /= "" then
+        code
+
+    else
+        ""
 
 
 getAuthUrl : String
@@ -99,7 +170,7 @@ view model =
                 , value model.clientSecret
                 ]
                 []
-            , button [ disabled ((model.dataState == Waiting) || String.isEmpty (String.trim model.clientId) || String.isEmpty (String.trim model.clientSecret) || String.isEmpty (String.trim model.clientState)) ]
+            , button [ disabled ((model.dataState == Waiting) || String.isEmpty (String.trim model.clientSecret)) ]
                 [ text "Submit" ]
             ]
         ]
@@ -107,3 +178,8 @@ view model =
 
 
 --DATA
+
+
+type alias CheckTokenData =
+    { test : Bool
+    }
