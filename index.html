@@ -20,6 +20,24 @@
 	app.ports.setStorage.subscribe(function(tokenStr) {
     	localStorage.setItem('token', tokenStr);
 	});
+	app.ports.getStorage.subscribe( (key) => {
+		const val = localStorage.getItem(key);
+		let valStr = val == null ? "" : val;
+		res = [key, val];
+		app.ports.resStorage.send(res);
+	});
+	app.ports.getLoation.subscribe( (key) => {
+		location.search.substring(1).split('&').forEach(
+			function(v){
+				s=v.split('=');
+				p[s[0]]=s[1];
+			}
+		)
+		let code = p.code == null ? "" : p.code;
+		let state = state == null ? "" : p.state;
+		res = [code, state];
+		app.ports.resLocation.send(res);
+	});
 </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-module Index exposing (main)
+port module Index exposing (main)
 
 import Browser
 import Browser.Navigation as Nav
@@ -13,6 +13,11 @@ import Task exposing (..)
 import Url.Parser as Url exposing ((</>), (<?>))
 import Url.Parser.Query as Query
 
+port setStorage : (String) -> Cmd msg
+port getStorage : String -> Cmd msg
+port resStorage : ((String, String) -> msg) -> Sub msg
+port getLocation : String -> Cmd msg
+port resLocation : ((String, String) -> msg) -> Sub msg
 
 main : Program () Model Msg
 main =
@@ -43,11 +48,8 @@ type DataState
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    { dataState = Init
-    , clientSecret = ""
-    , code = ""
-    }
-        ! [ Task.perform Authorize ]
+    ( Model Init "" ""
+    , getStorage "token")
 
 
 
@@ -61,6 +63,9 @@ type Msg
     | ReceiveCheckToken (Result Http.Error CheckTokenData)
     | Authorize
     | GetToken
+    | Receive (String, String)
+    | GetLocation
+    | ReceiveLocation (String)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -105,17 +110,19 @@ update msg model =
               }
             , Cmd.none
             )
+        Receive  (_, val) ->
+            (model , checkToken val)
 
+        ReceiveLocation  (paramCode, paramState) ->
+            ({model | code = paramCode}, checkParam paramCode paramState)
 
-type alias Param =
-    { code : Maybe String
-    , state : Maybe String
-    }
+checkToken : String -> Cmd Msg
+checkToken token =
+  if (token == "") then getLocation ""  else Cmd.none
 
-
-parseUrl : Url.Parser (Param -> a) a
-parseUrl =
-    Url.map Param (Url.s "index.html" <?> Query.string "code" <?> Query.string "state")
+checkParam : String -> String -> Cmd Msg
+checkParam code state =
+  if (code /= "" && state == "Pd3mSwgs") then Cmd.none{-トークンの取得-}  else Nav.load getAuthUrl
 
 
 maybeStringToString : Maybe String -> String
@@ -126,25 +133,6 @@ maybeStringToString str =
 
         Nothing ->
             ""
-
-
-authorize : Model -> String
-authorize model =
-    let
-        p =
-            parseUrl model.location.href
-
-        code =
-            maybeStringToString p.code
-
-        state =
-            maybeStringToString p.state
-    in
-    if state == "Pd3mSwgs" && code /= "" then
-        code
-
-    else
-        ""
 
 
 getAuthUrl : String
