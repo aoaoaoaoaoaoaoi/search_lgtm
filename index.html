@@ -17,7 +17,7 @@
         node: document.getElementById("elm-app-is-loaded-here")
     });
 	app.ports.setStorage.subscribe(function(tokenStr) {
-    	localStorage.setItem('token', tokenStr);
+    	//localStorage.setItem('token', tokenStr);
 	});
 	app.ports.getStorage.subscribe( (key) => {
 		const val = localStorage.getItem(key);
@@ -36,7 +36,6 @@
 		let code = p.code == null ? "" : p.code;
 		let state = p.state == null ? "" : p.state;
 		let res = [code, state];
-		console.log(res);
 		app.ports.resLocation.send(res);
 	});
 </script>

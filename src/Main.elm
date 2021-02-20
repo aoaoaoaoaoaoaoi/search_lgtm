@@ -115,7 +115,7 @@ update msg model =
             ( model, checkToken val)
 
         ReceiveLocation ( paramCode, paramState ) ->
-            if paramCode /= "" && paramState == "Pd3mSwgs" then
+            if (paramCode /= "" && paramState == "Pd3mSwgs") then
                 ( { model | progress = InGetToken, code = paramCode }, Cmd.none )
 
             else
