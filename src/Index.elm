@@ -108,7 +108,7 @@ update msg model =
             ( { model
                 | dataState = Waiting
               }
-            , Cmd.none
+            , Cmd.none{-tockenの取得-}
             )
         Receive  (_, val) ->
             (model , checkToken val)
@@ -116,14 +116,30 @@ update msg model =
         ReceiveLocation  (paramCode, paramState) ->
             ({model | code = paramCode}, checkParam paramCode paramState)
 
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  resStorage Receive
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  resLocation ReceiveLocation
+
+
 checkToken : String -> Cmd Msg
 checkToken token =
   if (token == "") then getLocation ""  else Cmd.none
 
 checkParam : String -> String -> Cmd Msg
 checkParam code state =
-  if (code /= "" && state == "Pd3mSwgs") then Cmd.none{-トークンの取得-}  else Nav.load getAuthUrl
+  if (code /= "" && state == "Pd3mSwgs") then Cmd.none  else Nav.load getAuthUrl
 
+getToken 
+getToken 
+      Http.post
+        { url = "http://localhost:5019/posts"
+        , body = Http.jsonBody (newPostEncoder post)
+        , expect = Http.expectJson PostCreated postDecoder
+        }
 
 maybeStringToString : Maybe String -> String
 maybeStringToString str =
@@ -152,7 +168,7 @@ getAuthUrl =
 view : Model -> Html Msg
 view model =
     div []
-        [ Html.form [ onSubmit Send ]
+        [ Html.form [ onSubmit GetToken ]
             [ input
                 [ onInput InputClientSecret
                 , value model.clientSecret
