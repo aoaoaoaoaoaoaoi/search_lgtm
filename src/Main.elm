@@ -112,10 +112,10 @@ update msg model =
             )
 
         Receive ( _, val ) ->
-            ( model, checkToken val)
+            ( model, checkToken val )
 
         ReceiveLocation ( paramCode, paramState ) ->
-            if (paramCode /= "" && paramState == "Pd3mSwgs") then
+            if paramCode /= "" && paramState == "Pd3mSwgs" then
                 ( { model | progress = InGetToken, code = paramCode }, Cmd.none )
 
             else
@@ -207,7 +207,10 @@ getArticleDataTask : String -> Task Http.Error ArticleData
 getArticleDataTask token =
     Http.task
         { method = "POST"
-        , headers = [ Http.header "Content-Type" "application/json" ]
+        , headers =
+            [ Http.header "Content-Type" "application/json"
+            , Http.header "Authorization" ("Bearer " ++ token)
+            ]
         , url = "https://qiita.com/api/v2/graphql"
         , body = Http.jsonBody makeArticleRequestParameter token
         , resolver = jsonResolver articleDataDecoder
@@ -221,7 +224,6 @@ makeArticleRequestParameter token =
         [ ( "urlName", Encode.string "pirorirori_n712" )
         , ( "page", Encode.int 7 )
         , ( "per", Encode.int 40 )
-        , ("token", Encode.string token)
         ]
 
 
@@ -279,8 +281,9 @@ view model =
                     , button [ disabled ((model.dataState == Waiting) || String.isEmpty (String.trim model.clientSecret)) ]
                         [ text "Submit" ]
                     ]
+
             InLoadedArticleData articleData ->
-                div[][text (Debug.toString articleData)]
+                div [] [ text (Debug.toString articleData) ]
 
             InFinish ->
                 div [] []
