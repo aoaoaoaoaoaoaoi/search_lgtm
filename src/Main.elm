@@ -166,7 +166,7 @@ getToken model =
 
 setToken : String -> Cmd Msg
 setToken token =
-    Cmd.batch [ setStorage token, getArticleData ]
+    Cmd.batch [ setStorage token, getArticleData token ]
 
 
 makeRequestParameter : Model -> Encode.Value
@@ -198,29 +198,30 @@ getAuthUrl =
         ++ "Pd3mSwgs"
 
 
-getArticleData : Cmd Msg
-getArticleData =
-    Task.attempt ReceiveArticleData getArticleDataTask
+getArticleData : String -> Cmd Msg
+getArticleData token =
+    Task.attempt ReceiveArticleData getArticleDataTask token
 
 
-getArticleDataTask : Task Http.Error ArticleData
-getArticleDataTask =
+getArticleDataTask : String -> Task Http.Error ArticleData
+getArticleDataTask token =
     Http.task
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
         , url = "https://qiita.com/api/v2/graphql"
-        , body = Http.jsonBody makeArticleRequestParameter
+        , body = Http.jsonBody makeArticleRequestParameter token
         , resolver = jsonResolver articleDataDecoder
         , timeout = Nothing
         }
 
 
-makeArticleRequestParameter : Encode.Value
-makeArticleRequestParameter =
+makeArticleRequestParameter : String -> Encode.Value
+makeArticleRequestParameter token =
     Encode.object
         [ ( "urlName", Encode.string "pirorirori_n712" )
         , ( "page", Encode.int 7 )
         , ( "per", Encode.int 40 )
+        , ("token", Encode.string token)
         ]
 
 

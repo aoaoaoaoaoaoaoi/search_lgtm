@@ -23,6 +23,7 @@
 		const val = localStorage.getItem(key);
 		let valStr = val == null ? "" : val;
 		let res = [key, valStr];
+		console.log(res);
 		app.ports.resStorage.send(res);
 	});
 	app.ports.getLocation.subscribe( (key) => {
