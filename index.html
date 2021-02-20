@@ -36,6 +36,7 @@
 		let code = p.code == null ? "" : p.code;
 		let state = p.state == null ? "" : p.state;
 		let res = [code, state];
+		console.log(res);
 		app.ports.resLocation.send(res);
 	});
 </script>
