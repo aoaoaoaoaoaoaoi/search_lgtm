@@ -200,7 +200,7 @@ getAuthUrl =
 
 getArticleData : String -> Cmd Msg
 getArticleData token =
-    Task.attempt ReceiveArticleData getArticleDataTask token
+    Task.attempt ReceiveArticleData (getArticleDataTask token)
 
 
 getArticleDataTask : String -> Task Http.Error ArticleData
@@ -211,14 +211,14 @@ getArticleDataTask token =
             [ Http.header "Authorization" ("Bearer " ++ token)
             ]
         , url = "https://qiita.com/api/v2/graphql"
-        , body = Http.jsonBody makeArticleRequestParameter token
+        , body = Http.jsonBody makeArticleRequestParameter
         , resolver = jsonResolver articleDataDecoder
         , timeout = Nothing
         }
 
 
-makeArticleRequestParameter : String -> Encode.Value
-makeArticleRequestParameter token =
+makeArticleRequestParameter : Encode.Value
+makeArticleRequestParameter =
     Encode.object
         [ ( "urlName", Encode.string "pirorirori_n712" )
         , ( "page", Encode.int 7 )

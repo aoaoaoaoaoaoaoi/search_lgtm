@@ -6124,22 +6124,29 @@ var $elm$http$Http$task = function (r) {
 		$elm$http$Http$resultToTask,
 		{allowCookiesFromOtherDomains: false, body: r.body, expect: r.resolver, headers: r.headers, method: r.method, timeout: r.timeout, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
-var $author$project$Main$getArticleDataTask = $elm$http$Http$task(
-	{
-		body: $elm$http$Http$jsonBody($author$project$Main$makeArticleRequestParameter),
-		headers: _List_fromArray(
-			[
-				A2($elm$http$Http$header, 'Content-Type', 'application/json')
-			]),
-		method: 'POST',
-		resolver: $author$project$Main$jsonResolver($author$project$Main$articleDataDecoder),
-		timeout: $elm$core$Maybe$Nothing,
-		url: 'https://qiita.com/api/v2/graphql'
-	});
-var $author$project$Main$getArticleData = A2($elm$core$Task$attempt, $author$project$Main$ReceiveArticleData, $author$project$Main$getArticleDataTask);
+var $author$project$Main$getArticleDataTask = function (token) {
+	return $elm$http$Http$task(
+		{
+			body: $elm$http$Http$jsonBody($author$project$Main$makeArticleRequestParameter),
+			headers: _List_fromArray(
+				[
+					A2($elm$http$Http$header, 'Authorization', 'Bearer ' + token)
+				]),
+			method: 'POST',
+			resolver: $author$project$Main$jsonResolver($author$project$Main$articleDataDecoder),
+			timeout: $elm$core$Maybe$Nothing,
+			url: 'https://qiita.com/api/v2/graphql'
+		});
+};
+var $author$project$Main$getArticleData = function (token) {
+	return A2(
+		$elm$core$Task$attempt,
+		$author$project$Main$ReceiveArticleData,
+		$author$project$Main$getArticleDataTask(token));
+};
 var $author$project$Main$getLocation = _Platform_outgoingPort('getLocation', $elm$json$Json$Encode$string);
 var $author$project$Main$checkToken = function (token) {
-	return (token === '') ? $author$project$Main$getLocation('') : $author$project$Main$getArticleData;
+	return (token === '') ? $author$project$Main$getLocation('') : $author$project$Main$getArticleData(token);
 };
 var $author$project$Main$getAuthUrl = 'https://qiita.com/api/v2/oauth/authorize' + ('?client_id=' + ('190908c64f149924c34c7e381cf3faed0a6236c4' + ('&scope=read_qiita' + ('&state=' + 'Pd3mSwgs'))));
 var $author$project$Main$PostCreated = function (a) {
@@ -6418,7 +6425,7 @@ var $author$project$Main$setToken = function (token) {
 		_List_fromArray(
 			[
 				$author$project$Main$setStorage(token),
-				$author$project$Main$getArticleData
+				$author$project$Main$getArticleData(token)
 			]));
 };
 var $author$project$Main$update = F2(
