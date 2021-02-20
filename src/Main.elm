@@ -208,8 +208,7 @@ getArticleDataTask token =
     Http.task
         { method = "POST"
         , headers =
-            [ Http.header "Content-Type" "application/json"
-            , Http.header "Authorization" ("Bearer " ++ token)
+            [ Http.header "Authorization" ("Bearer " ++ token)
             ]
         , url = "https://qiita.com/api/v2/graphql"
         , body = Http.jsonBody makeArticleRequestParameter token
