@@ -5382,6 +5382,7 @@ var $author$project$Main$Failed = function (a) {
 	return {$: 'Failed', a: a};
 };
 var $author$project$Main$InAuthorize = {$: 'InAuthorize'};
+var $author$project$Main$InGetToken = {$: 'InGetToken'};
 var $author$project$Main$InLoadedArticleData = function (a) {
 	return {$: 'InLoadedArticleData', a: a};
 };
@@ -6455,7 +6456,7 @@ var $author$project$Main$update = F2(
 				return ((paramCode !== '') && (paramState === 'Pd3mSwgs')) ? _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{code: paramCode, progress: $author$project$Main$InCheckToken}),
+						{code: paramCode, progress: $author$project$Main$InGetToken}),
 					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					_Utils_update(
 						model,
