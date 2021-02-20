@@ -48,6 +48,7 @@ type alias Model =
     , progress : Progress
     , clientSecret : String
     , code : String
+    , token : String
     }
 
 
@@ -55,7 +56,7 @@ type Progress
     = InCheckToken
     | InAuthorize
     | InGetToken
-    | InLoaded Token
+    | InLoadedArticleData ArticleData
     | InFinish
 
 
@@ -67,7 +68,7 @@ type DataState
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Init InCheckToken "" ""
+    ( Model Init InCheckToken "" "" ""
     , getStorage "token"
     )
 
@@ -83,6 +84,7 @@ type Msg
     | Receive ( String, String )
     | ReceiveLocation ( String, String )
     | PostCreated (Result Http.Error Token)
+    | ReceiveArticleData (Result Http.Error ArticleData)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -120,14 +122,20 @@ update msg model =
                 ( { model | progress = InAuthorize }, Cmd.none )
 
         PostCreated (Ok post) ->
-            ( { model | progress = InLoaded post }
-            , Cmd.none
+            ( { model | token = post.token }
+            , setToken post.token
             )
 
         PostCreated (Err error) ->
             ( model
             , Cmd.none
             )
+
+        ReceiveArticleData (Ok articleData) ->
+            ( { model | progress = InLoadedArticleData articleData }, Cmd.none )
+
+        ReceiveArticleData (Err e) ->
+            ( { model | dataState = Failed e }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -144,11 +152,7 @@ checkToken token =
         getLocation ""
 
     else
-        Cmd.none
-
-
-
-{- token完了 -}
+        getArticleData
 
 
 getToken : Model -> Cmd Msg
@@ -158,6 +162,11 @@ getToken model =
         , body = Http.jsonBody (makeRequestParameter model)
         , expect = Http.expectJson PostCreated tokenDecoder
         }
+
+
+setToken : String -> Cmd Msg
+setToken token =
+    Cmd.batch [ setStorage token, getArticleData ]
 
 
 makeRequestParameter : Model -> Encode.Value
@@ -189,6 +198,58 @@ getAuthUrl =
         ++ "Pd3mSwgs"
 
 
+getArticleData : Cmd Msg
+getArticleData =
+    Task.attempt ReceiveArticleData getArticleDataTask
+
+
+getArticleDataTask : Task Http.Error ArticleData
+getArticleDataTask =
+    Http.task
+        { method = "POST"
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = "https://qiita.com/api/v2/graphql"
+        , body = Http.jsonBody makeArticleRequestParameter
+        , resolver = jsonResolver articleDataDecoder
+        , timeout = Nothing
+        }
+
+
+makeArticleRequestParameter : Encode.Value
+makeArticleRequestParameter =
+    Encode.object
+        [ ( "urlName", Encode.string "pirorirori_n712" )
+        , ( "page", Encode.int 7 )
+        , ( "per", Encode.int 40 )
+        ]
+
+
+jsonResolver : D.Decoder a -> Http.Resolver Http.Error a
+jsonResolver decoder =
+    Http.stringResolver <|
+        \response ->
+            case response of
+                Http.BadUrl_ url ->
+                    Err (Http.BadUrl url)
+
+                Http.Timeout_ ->
+                    Err Http.Timeout
+
+                Http.NetworkError_ ->
+                    Err Http.NetworkError
+
+                Http.BadStatus_ metadata body ->
+                    Err (Http.BadStatus metadata.statusCode)
+
+                Http.GoodStatus_ metadata body ->
+                    case D.decodeString decoder body of
+                        Ok value ->
+                            Ok value
+
+                        Err err ->
+                            Err (Http.BadBody (D.errorToString err))
+
+
 
 --VIEW
 
@@ -217,9 +278,8 @@ view model =
                     , button [ disabled ((model.dataState == Waiting) || String.isEmpty (String.trim model.clientSecret)) ]
                         [ text "Submit" ]
                     ]
-
-            InLoaded token ->
-                div [] []
+            InLoadedArticleData articleData ->
+                div[][text (Debug.toString articleData)]
 
             InFinish ->
                 div [] []
@@ -238,3 +298,112 @@ type alias Token =
 tokenDecoder : Decoder Token
 tokenDecoder =
     D.map Token (D.field "token" D.string)
+
+
+type alias ArticleData =
+    { data : Data
+    }
+
+
+type alias Data =
+    { user : User
+    }
+
+
+type alias User =
+    { paginatedArticleLikes : PaginatedArticleLikes
+    }
+
+
+type alias PaginatedArticleLikes =
+    { items : List Item
+    }
+
+
+type alias Item =
+    { article : Article
+    }
+
+
+type alias Article =
+    { url : String
+    , title : String
+    , tags : List Tag
+    , author : Author
+    }
+
+
+type alias Author =
+    { name : String
+    , imageUrl : String
+    }
+
+
+type alias Tag =
+    { name : String
+    }
+
+
+articleDataDecoder : Decoder ArticleData
+articleDataDecoder =
+    D.map
+        ArticleData
+        (D.field "data" dataDecoder)
+
+
+dataDecoder : Decoder Data
+dataDecoder =
+    D.map
+        Data
+        (D.field "user" userDecoder)
+
+
+userDecoder : Decoder User
+userDecoder =
+    D.map
+        User
+        (D.field "paginatedArticleLikes" paginatedArticleLikesDecoder)
+
+
+paginatedArticleLikesDecoder : Decoder PaginatedArticleLikes
+paginatedArticleLikesDecoder =
+    D.map
+        PaginatedArticleLikes
+        (D.field "items" itemsDecoder)
+
+
+itemsDecoder : Decoder (List Item)
+itemsDecoder =
+    D.map
+        Item
+        (D.field "article" articleDecoder)
+        |> D.list
+
+
+articleDecoder : Decoder Article
+articleDecoder =
+    D.map4 Article
+        (D.field "linkUrl" D.string)
+        (D.field "title" D.string)
+        (D.field "tags" tagsDecoder)
+        (D.field "author" authorDecoder)
+
+
+authorDecoder : Decoder Author
+authorDecoder =
+    D.map2
+        Author
+        (D.field "urlName" D.string)
+        (D.field "profileImageUrl" D.string)
+
+
+tagsDecoder : Decoder (List Tag)
+tagsDecoder =
+    D.list tagDecoder
+
+
+tagDecoder : Decoder Tag
+tagDecoder =
+    D.map
+        Tag
+        (D.field "name" D.string)
