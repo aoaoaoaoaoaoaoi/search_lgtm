@@ -1,6 +1,7 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
+import Browser.Navigation as Nav
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -9,6 +10,23 @@ import Json.Decode as D exposing (Decoder)
 import Json.Encode as Encode
 import List exposing (..)
 import Task exposing (..)
+import Url.Parser as Url exposing ((</>), (<?>))
+import Url.Parser.Query as Query
+
+
+port setStorage : String -> Cmd msg
+
+
+port getStorage : String -> Cmd msg
+
+
+port resStorage : (( String, String ) -> msg) -> Sub msg
+
+
+port getLocation : String -> Cmd msg
+
+
+port resLocation : (( String, String ) -> msg) -> Sub msg
 
 
 main : Program () Model Msg
@@ -17,7 +35,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         }
 
 
@@ -27,20 +45,31 @@ main =
 
 type alias Model =
     { dataState : DataState
+    , progress : Progress
+    , clientSecret : String
+    , code : String
+    , token : String
     }
+
+
+type Progress
+    = InCheckToken
+    | InAuthorize
+    | InGetToken
+    | InLoadedArticleData ArticleData
+    | InFinish
 
 
 type DataState
     = Init
     | Waiting
-    | LoadedArticleData ArticleData
     | Failed Http.Error
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Init
-    , getArticleData
+    ( Model Init InCheckToken "" "" ""
+    , getStorage "token"
     )
 
 
@@ -49,25 +78,124 @@ init _ =
 
 
 type Msg
-    = Send
+    = InputClientSecret String
+    | GetToken
+    | Authorize
+    | Receive ( String, String )
+    | ReceiveLocation ( String, String )
+    | PostCreated (Result Http.Error Token)
     | ReceiveArticleData (Result Http.Error ArticleData)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Send ->
+        InputClientSecret specifiedClientSecret ->
+            ( { model
+                | clientSecret = specifiedClientSecret
+              }
+            , Cmd.none
+            )
+
+        Authorize ->
             ( { model
                 | dataState = Waiting
               }
-            , getArticleData
+            , Nav.load getAuthUrl
+            )
+
+        GetToken ->
+            ( { model
+                | dataState = Waiting
+              }
+            , getToken model
+            )
+
+        Receive ( _, val ) ->
+            ( model, checkToken ( Debug.log "elm" val ))
+
+        ReceiveLocation ( paramCode, paramState ) ->
+            if paramCode /= "" && paramState == "Pd3mSwgs" then
+                ( { model | progress = InCheckToken, code = paramCode }, Cmd.none )
+
+            else
+                ( { model | progress = InAuthorize }, Cmd.none )
+
+        PostCreated (Ok post) ->
+            ( { model | token = post.token }
+            , setToken post.token
+            )
+
+        PostCreated (Err error) ->
+            ( model
+            , Cmd.none
             )
 
         ReceiveArticleData (Ok articleData) ->
-            ( { model | dataState = LoadedArticleData articleData }, Cmd.none )
+            ( { model | progress = InLoadedArticleData articleData }, Cmd.none )
 
         ReceiveArticleData (Err e) ->
             ( { model | dataState = Failed e }, Cmd.none )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ resStorage Receive
+        , resLocation ReceiveLocation
+        ]
+
+
+checkToken : String -> Cmd Msg
+checkToken token =
+    if token == "" then
+        getLocation ""
+
+    else
+        getArticleData
+
+
+getToken : Model -> Cmd Msg
+getToken model =
+    Http.post
+        { url = "https://qiita.com/api/v2/access_tokens"
+        , body = Http.jsonBody (makeRequestParameter model)
+        , expect = Http.expectJson PostCreated tokenDecoder
+        }
+
+
+setToken : String -> Cmd Msg
+setToken token =
+    Cmd.batch [ setStorage token, getArticleData ]
+
+
+makeRequestParameter : Model -> Encode.Value
+makeRequestParameter model =
+    Encode.object
+        [ ( "client_id", Encode.string "190908c64f149924c34c7e381cf3faed0a6236c4" )
+        , ( "client_secret", Encode.string model.clientSecret )
+        , ( "code", Encode.string model.code )
+        ]
+
+
+maybeStringToString : Maybe String -> String
+maybeStringToString str =
+    case str of
+        Just value ->
+            value
+
+        Nothing ->
+            ""
+
+
+getAuthUrl : String
+getAuthUrl =
+    "https://qiita.com/api/v2/oauth/authorize"
+        ++ "?client_id="
+        ++ "190908c64f149924c34c7e381cf3faed0a6236c4"
+        ++ "&scope=read_qiita"
+        ++ "&state="
+        ++ "Pd3mSwgs"
 
 
 getArticleData : Cmd Msg
@@ -81,18 +209,14 @@ getArticleDataTask =
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
         , url = "https://qiita.com/api/v2/graphql"
-        , body = Http.jsonBody makeRequestParameter
+        , body = Http.jsonBody makeArticleRequestParameter
         , resolver = jsonResolver articleDataDecoder
         , timeout = Nothing
         }
 
 
-getRequestParameter =
-    Encode.encode 0 makeRequestParameter
-
-
-makeRequestParameter : Encode.Value
-makeRequestParameter =
+makeArticleRequestParameter : Encode.Value
+makeArticleRequestParameter =
     Encode.object
         [ ( "urlName", Encode.string "pirorirori_n712" )
         , ( "page", Encode.int 7 )
@@ -130,13 +254,50 @@ jsonResolver decoder =
 --VIEW
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
-    div [] []
+    div []
+        [ case model.progress of
+            InCheckToken ->
+                div [] []
+
+            InAuthorize ->
+                Html.form [ onSubmit Authorize ]
+                    [ div [] [ text "この機能を使用するには、Qiitaとの連携が必要です。\n以下のボタンをクリックし、認証ページで許可してください。" ]
+                    , button [ disabled (model.dataState == Waiting) ]
+                        [ text "Submit" ]
+                    ]
+
+            InGetToken ->
+                Html.form [ onSubmit GetToken ]
+                    [ input
+                        [ onInput InputClientSecret
+                        , value model.clientSecret
+                        ]
+                        []
+                    , button [ disabled ((model.dataState == Waiting) || String.isEmpty (String.trim model.clientSecret)) ]
+                        [ text "Submit" ]
+                    ]
+            InLoadedArticleData articleData ->
+                div[][text (Debug.toString articleData)]
+
+            InFinish ->
+                div [] []
+        ]
 
 
 
 --DATA
+
+
+type alias Token =
+    { token : String
+    }
+
+
+tokenDecoder : Decoder Token
+tokenDecoder =
+    D.map Token (D.field "token" D.string)
 
 
 type alias ArticleData =
