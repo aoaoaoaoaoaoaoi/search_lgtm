@@ -152,7 +152,7 @@ checkToken token =
         getLocation ""
 
     else
-        getArticleData
+        getArticleData token
 
 
 getToken : Model -> Cmd Msg
