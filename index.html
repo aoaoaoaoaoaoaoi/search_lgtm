@@ -23,11 +23,10 @@
 		const val = localStorage.getItem(key);
 		let valStr = val == null ? "" : val;
 		let res = [key, valStr];
-		console.log(res);
 		app.ports.resStorage.send(res);
-		console.log("終わり");
 	});
 	app.ports.getLocation.subscribe( (key) => {
+		let p = {};
 		location.search.substring(1).split('&').forEach(
 			function(v){
 				s=v.split('=');
@@ -35,7 +34,7 @@
 			}
 		)
 		let code = p.code == null ? "" : p.code;
-		let state = state == null ? "" : p.state;
+		let state = p.state == null ? "" : p.state;
 		let res = [code, state];
 		app.ports.resLocation.send(res);
 	});

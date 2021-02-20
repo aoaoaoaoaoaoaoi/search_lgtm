@@ -6408,7 +6408,6 @@ var $author$project$Main$getToken = function (model) {
 		});
 };
 var $elm$browser$Browser$Navigation$load = _Browser_load;
-var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -6448,8 +6447,7 @@ var $author$project$Main$update = F2(
 				var val = _v1.b;
 				return _Utils_Tuple2(
 					model,
-					$author$project$Main$checkToken(
-						A2($elm$core$Debug$log, 'elm', val)));
+					$author$project$Main$checkToken(val));
 			case 'ReceiveLocation':
 				var _v2 = msg.a;
 				var paramCode = _v2.a;

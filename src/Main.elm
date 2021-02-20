@@ -112,7 +112,7 @@ update msg model =
             )
 
         Receive ( _, val ) ->
-            ( model, checkToken ( Debug.log "elm" val ))
+            ( model, checkToken val)
 
         ReceiveLocation ( paramCode, paramState ) ->
             if paramCode /= "" && paramState == "Pd3mSwgs" then
